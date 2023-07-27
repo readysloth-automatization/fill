@@ -56,15 +56,16 @@ def main(argv):
         def line_source():
             for line in sys.stdin:
                 stripped_line = line.rstrip('\n')
-                if args.skip and not re.match(args.skip, stripped_line):
+                if not (args.skip and re.match(args.skip, stripped_line)):
                     yield stripped_line
 
     else:
         def line_source():
             with open(args.file, 'r') as f:
                 filtered_lines = (line for line in f
-                                  if args.skip and
-                                  not re.match(args.skip, line))
+                                  if not (args.skip and
+                                          re.match(args.skip,
+                                                   line)))
                 for line in it.cycle(filtered_lines):
                     yield line.rstrip('\n')
     run_listeners(line_source())
@@ -77,5 +78,9 @@ def main(argv):
             break
 
 
-if __name__ == '__main__':
+def run_default():
     main(sys.argv[1:])
+
+
+if __name__ == '__main__':
+    run_default()
