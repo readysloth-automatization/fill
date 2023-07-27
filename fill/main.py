@@ -58,7 +58,7 @@ def main(argv):
 
     else:
         def line_source():
-            with open(args.file, 'r') as f:
+            with open(args.file, 'r', encoding='utf-8') as f:
                 filtered_lines = (line for line in f
                                   if not (args.skip and
                                           re.match(args.skip,
