@@ -24,21 +24,18 @@ def on_click(write, line_source, *args):
 
 def on_press(key):
     global CTRL_PRESSED
-    CTRL_PRESSED = key == keyboard.Key.ctrl
-
-
-def on_release(key):
-    global CTRL_PRESSED
-    if key == keyboard.Key.ctrl:
-        CTRL_PRESSED = False
+    if key in (keyboard.Key.ctrl,
+               keyboard.Key.ctrl_l,
+               keyboard.Key.ctrl_r):
+        CTRL_PRESSED = not CTRL_PRESSED
 
 
 def run_listeners(line_source):
     kbd_controller = keyboard.Controller()
     kbd_listener = keyboard.Listener(
         daemon=False,
-        on_press=on_press,
-        on_release=on_release)
+        on_press=on_press
+    )
     mouse_listener = mouse.Listener(
         daemon=False,
         on_click=lambda *args: on_click(kbd_controller.type,
