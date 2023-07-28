@@ -4,6 +4,8 @@ import time
 import argparse
 import itertools as it
 
+import pyperclip
+
 from pynput import mouse, keyboard
 
 
@@ -14,6 +16,9 @@ def parse_args(argv):
     parser = argparse.ArgumentParser('fill')
     parser.add_argument('file', help='File to load strings from')
     parser.add_argument('-s', '--skip', help='RegEx to skip strings from file')
+    parser.add_argument('-c', '--clipboard',
+                        action='store_true',
+                        help='Use clipboard instead of typing')
     return parser.parse_args(argv)
 
 
@@ -30,17 +35,23 @@ def on_press(key):
         CTRL_PRESSED = not CTRL_PRESSED
 
 
-def run_listeners(line_source):
+def run_listeners(line_source, use_clipboard=False):
     kbd_controller = keyboard.Controller()
+
+    writer = kbd_controller.type
+    if use_clipboard:
+        def writer(string):
+            pyperclip.copy(string)
+            with kbd_controller.pressed(keyboard.Key.ctrl):
+                kbd_controller.press('v')
+
     kbd_listener = keyboard.Listener(
         daemon=False,
         on_press=on_press
     )
     mouse_listener = mouse.Listener(
         daemon=False,
-        on_click=lambda *args: on_click(kbd_controller.type,
-                                        line_source,
-                                        *args)
+        on_click=lambda *args: on_click(writer, line_source, *args)
     )
     kbd_listener.start()
     mouse_listener.start()
@@ -65,7 +76,7 @@ def main(argv):
                                                    line)))
                 for line in it.cycle(filtered_lines):
                     yield line.rstrip('\n')
-    run_listeners(line_source())
+    run_listeners(line_source(), use_clipboard=args.clipboard)
     print('Press Ctrl-C to exit')
     while True:
         try:
